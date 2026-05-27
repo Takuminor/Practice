@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DAアルゴリズム モンテカルロ 9教科対応 安定版</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 22px;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .panel {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .flex-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: flex-end;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 130px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 13px;
+            color: #34495e;
+        }
+
+        input[type="number"],
+        input[type="text"] {
+            width: 100%;
+            padding: 6px;
+            box-sizing: border-box;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        button.btn-danger {
+            background-color: #e74c3c;
+            padding: 4px 8px;
+            font-size: 11px;
+        }
+
+        button.btn-danger:hover {
+            background-color: #c0392b;
+        }
+
+        button.btn-success {
+            background-color: #27ae60;
+        }
+
+        button.btn-success:hover {
+            background-color: #2ecc71;
+        }
+
+        button.btn-warning {
+            background-color: #f39c12;
+        }
+
+        button.btn-warning:hover {
+            background-color: #d35400;
+        }
+
+        button.btn-large {
+            font-size: 16px;
+            padding: 12px;
+            margin-top: 10px;
+            width: 48%;
+        }
+
+        button.btn-viewer {
+            background-color: #8e44ad;
+            font-size: 16px;
+            padding: 12px;
+            margin-top: 10px;
+            width: 48%;
+        }
+
+        button.btn-viewer:hover {
+            background-color: #732d91;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            overflow-y: auto;
+            margin-top: 10px;
+            max-height: 400px;
+            border: 1px solid #ccc;
+        }
+
+        table {
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 11px;
+            white-space: nowrap;
+            width: max-content;
+        }
+
+        th,
+        td {
+            padding: 5px 6px;
+            text-align: center;
+            vertical-align: middle;
+            border-right: 1px solid #bdc3c7;
+            border-bottom: 1px solid #bdc3c7;
+        }
+
+        th:first-child,
+        td:first-child {
+            border-left: 1px solid #bdc3c7;
+        }
+
+        thead tr:first-child th {
+            border-top: 1px solid #bdc3c7;
+        }
+
+        th {
+            position: sticky;
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            z-index: 10;
+            box-sizing: border-box;
+        }
+
+        thead tr:nth-child(1) th {
+            top: 0;
+            height: 32px;
+        }
+
+        thead tr:nth-child(2) th {
+            top: 31px;
+            z-index: 9;
+            height: 32px;
+        }
+
+        td input {
+            width: 45px;
+            text-align: center;
+            padding: 2px;
+            font-size: 11px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        .col-name input {
+            width: 75px;
+        }
+
+        th.col-y,
+        td.col-y {
+            background-color: #eaf2f8;
+        }
+
+        th.col-e,
+        td.col-e {
+            background-color: #f5eef8;
+        }
+
+        th.col-r,
+        td.col-r {
+            background-color: #fcf3cf;
+        }
+
+        .formula-box {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            line-height: 1.4;
+            font-size: 13px;
+        }
+
+        .formula-box code {
+            color: #f1c40f;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stat-box {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            flex: 1;
+            border: 1px solid #d4e6f1;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e74c3c;
+            margin-top: 5px;
+        }
+
+        #log-viewer {
+            display: none;
+            margin-top: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 8px;
+            height: 350px;
+            overflow-y: auto;
+            font-family: Consolas, monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            border: 1px solid #444;
+        }
+
+        .log-apply {
+            color: #569cd6;
+        }
+
+        .log-accept {
+            color: #4ec9b0;
+        }
+
+        .log-reject {
+            color: #f44747;
+        }
+
+        .log-end {
+            color: #dcdcaa;
+            font-weight: bold;
+        }
+
+        #sys-console {
+            background: #fee;
+            border: 1px solid #e74c3c;
+            color: #c0392b;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 15px;
+            display: none;
+            font-size: 12px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>DAアルゴリズム モンテカルロ 9教科＆学年比重対応版</h1>
+
+    <div class="container">
+        <div class="panel">
+            <h3>1. 全体設定 (Global Parameters)</h3>
+            <div class="flex-row">
+                <div class="form-group"><label>試行回数 (Iterations)</label><input type="number" id="iterations"
+                        value="500"></div>
+                <div class="form-group"><label>受験生数 (Students)</label><input type="number" id="num_students"
+                        value="100"></div>
+                <div class="form-group"><label>志望校記入数 (Prefs)</label><input type="number" id="num_prefs" value="5"
+                        max="20"></div>
+                <div class="form-group"><label>本番のブレ幅 (σ)</label><input type="number" id="sigma" value="4.0" step="0.5">
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3>2. 評価数式の定義 (Evaluation Formula)</h3>
+            <div class="formula-box">
+                ※高校ごとの学年比重・教科ウェイトは事前に計算され、以下の変数にまとめられます。<br>
+                <code>E_sum</code> : 学力検査の合計（WE適用済）<br>
+                <code>R_sum</code> : 調査書の合計（1〜3年の学年比重 ✕ 9教科WR適用済）<br><br>
+                使用可能な変数: <code>alpha</code>, <code>beta</code>, <code>E_sum</code>, <code>R_sum</code>
+            </div>
+            <label>総合得点算出フォーミュラ (JavaScript形式)</label>
+            <input type="text" id="formula_input" value="alpha * E_sum + beta * R_sum"
+                style="font-size: 16px; font-weight: bold; padding: 8px; width: 100%;">
+        </div>
+
+        <div class="panel">
+            <h3>3. 各高校のパラメーター (School Profiles)</h3>
+            <div class="flex-row" style="margin-bottom: 5px;">
+                <button id="btn-add-manual" class="btn-success">+ 手動で1校追加</button>
+                <div
+                    style="display: flex; gap: 10px; align-items: center; background: #eee; padding: 5px 10px; border-radius: 4px;">
+                    <label style="margin:0;">自動生成数:</label>
+                    <input type="number" id="auto_gen_count" value="5" style="width: 60px;">
+                    <button id="btn-add-auto" class="btn-warning">ランダムな高校を一括追加</button>
+                    <button id="btn-clear-schools" class="btn-danger">全削除</button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table id="schools_table">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">高校名</th>
+                            <th rowspan="2" title="定員">Q</th>
+                            <th rowspan="2" title="学力比重">α</th>
+                            <th rowspan="2" title="調査書比重">β</th>
+                            <th colspan="3" class="col-y">学年比重</th>
+                            <th colspan="5" class="col-e">学力ウェイト (WE)</th>
+                            <th colspan="9" class="col-r">調査書ウェイト (WR:9教科)</th>
+                            <th rowspan="2">操作</th>
+                        </tr>
+                        <tr>
+                            <th class="col-y">1年</th>
+                            <th class="col-y">2年</th>
+                            <th class="col-y">3年</th>
+                            <th class="col-e">国</th>
+                            <th class="col-e">数</th>
+                            <th class="col-e">英</th>
+                            <th class="col-e">社</th>
+                            <th class="col-e">理</th>
+                            <th class="col-r">国</th>
+                            <th class="col-r">数</th>
+                            <th class="col-r">英</th>
+                            <th class="col-r">社</th>
+                            <th class="col-r">理</th>
+                            <th class="col-r" title="音楽">音</th>
+                            <th class="col-r" title="体育">体</th>
+                            <th class="col-r" title="美術">美</th>
+                            <th class="col-r" title="技家">技</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="button-group">
+                <button class="btn-large" id="btn-run-stats">モンテカルロ分析 (統計)</button>
+                <button class="btn-viewer" id="btn-run-viewer">1回実行して過程をビューイング</button>
+            </div>
+
+            <div id="sys-console"></div>
+
+            <div id="log-viewer"></div>
+
+            <div class="stats" id="stats-container" style="display: none;">
+                <div class="stat-box">
+                    <div class="desc">平均あぶれ人数</div>
+                    <div class="stat-value" id="stat-avg">0.0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="desc">最大あぶれ人数</div>
+                    <div class="stat-value" id="stat-max">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="desc">あぶれゼロ確率</div>
+                    <div class="stat-value" id="stat-prob">0%</div>
+                </div>
+            </div>
+
+            <canvas id="resultChart" style="margin-top: 20px; max-height: 350px; display: none;"></canvas>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let myChart = null;
+            let schoolCounter = 1;
+
+            // --- システムエラー表示用 ---
+            function logError(msg) {
+                const con = document.getElementById('sys-console');
+                con.style.display = 'block';
+                con.innerText = "[System Error] " + msg;
+                console.error(msg);
+            }
+            function clearError() {
+                document.getElementById('sys-console').style.display = 'none';
+            }
+
+            // --- 高校追加ロジック ---
+            function addSchoolRow(data = {}) {
+                try {
+                    const d = Object.assign({
+                        name: "高" + schoolCounter++, Q: 10, a: 1.0, b: 1.0,
+                        y1: 1, y2: 1, y3: 2,
+                        we: [1, 1, 1, 1, 1],
+                        wr: [1, 1, 1, 1, 1, 1, 1, 1, 1]
+                    }, data);
+
+                    const tbody = document.querySelector("#schools_table tbody");
+                    if (!tbody) throw new Error("Table body not found.");
+
+                    const tr = document.createElement("tr");
+
+                    let html = `
+                        <td class="col-name"><input type="text" value="${d.name}"></td>
+                        <td><input type="number" class="val-q" value="${d.Q}" min="1"></td>
+                        <td><input type="number" class="val-a" value="${d.a}" step="0.1"></td>
+                        <td><input type="number" class="val-b" value="${d.b}" step="0.1"></td>
+                        
+                        <td class="col-y"><input type="number" class="val-y1" value="${d.y1}" step="0.5"></td>
+                        <td class="col-y"><input type="number" class="val-y2" value="${d.y2}" step="0.5"></td>
+                        <td class="col-y"><input type="number" class="val-y3" value="${d.y3}" step="0.5"></td>
+                    `;
+
+                    d.we.forEach((v, i) => { html += `<td class="col-e"><input type="number" class="val-we${i}" value="${v}" step="0.25"></td>`; });
+                    d.wr.forEach((v, i) => { html += `<td class="col-r"><input type="number" class="val-wr${i}" value="${v}" step="0.25"></td>`; });
+
+                    html += `<td><button class="btn-danger btn-delete-row">削除</button></td>`;
+
+                    tr.innerHTML = html;
+
+                    // 削除ボタンへのイベント付与
+                    tr.querySelector('.btn-delete-row').addEventListener('click', function () {
+                        this.closest('tr').remove();
+                    });
+
+                    tbody.appendChild(tr);
+                    clearError();
+                } catch (e) {
+                    logError("addSchoolRow failed: " + e.message);
+                }
+            }
+
+            function generateRandomSchools(count) {
+                const num = count > 0 ? count : (parseInt(document.getElementById('auto_gen_count').value) || 1);
+                const yearPatterns = [[1, 1, 2], [1, 1, 1], [0, 0, 1], [1, 2, 3]];
+
+                for (let i = 0; i < num; i++) {
+                    const q = Math.floor(Math.random() * 21) + 10;
+                    const b = parseFloat((Math.random() * 0.4 + 0.8).toFixed(1));
+                    const yp = yearPatterns[Math.floor(Math.random() * yearPatterns.length)];
+                    const getW = () => Math.random() < 0.2 ? (Math.random() < 0.5 ? 1.5 : 2.0) : 1.0;
+
+                    let we = Array.from({ length: 5 }, getW);
+                    let wr = Array.from({ length: 9 }, getW);
+
+                    addSchoolRow({ Q: q, a: 1.0, b: b, y1: yp[0], y2: yp[1], y3: yp[2], we: we, wr: wr });
+                }
+            }
+
+            function clearSchools() {
+                const tbody = document.querySelector("#schools_table tbody");
+                if (tbody) tbody.innerHTML = "";
+                schoolCounter = 1;
+            }
+
+            // --- イベントバインディング ---
+            document.getElementById('btn-add-manual').addEventListener('click', () => { addSchoolRow(); });
+            document.getElementById('btn-add-auto').addEventListener('click', () => { generateRandomSchools(0); });
+            document.getElementById('btn-clear-schools').addEventListener('click', clearSchools);
+            document.getElementById('btn-run-stats').addEventListener('click', runMonteCarlo);
+            document.getElementById('btn-run-viewer').addEventListener('click', runSingleAndView);
+
+            // 初期化実行
+            generateRandomSchools(5);
+
+            // --- データ抽出ロジック ---
+            function getSchoolsData() {
+                const rows = document.querySelectorAll("#schools_table tbody tr");
+                let schools = [];
+                rows.forEach((row, index) => {
+                    schools.push({
+                        id: index,
+                        name: row.querySelector("input[type='text']").value,
+                        Q: parseInt(row.querySelector(".val-q").value) || 0,
+                        alpha: parseFloat(row.querySelector(".val-a").value) || 0,
+                        beta: parseFloat(row.querySelector(".val-b").value) || 0,
+                        Y: [
+                            parseFloat(row.querySelector(".val-y1").value) || 0,
+                            parseFloat(row.querySelector(".val-y2").value) || 0,
+                            parseFloat(row.querySelector(".val-y3").value) || 0
+                        ],
+                        WE: [0, 1, 2, 3, 4].map(i => parseFloat(row.querySelector(`.val-we${i}`).value) || 0),
+                        WR: [0, 1, 2, 3, 4, 5, 6, 7, 8].map(i => parseFloat(row.querySelector(`.val-wr${i}`).value) || 0)
+                    });
+                });
+                return schools;
+            }
+
+            // --- 乱数・計算ロジック ---
+            function randomNormal(mean = 0, stdev = 1) {
+                let u = 1 - Math.random();
+                let v = Math.random();
+                return (Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v)) * stdev + mean;
+            }
+
+            function sampleWithoutReplacement(array, n) {
+                let result = new Array(n), len = array.length, taken = new Array(len);
+                if (n > len) n = len;
+                while (n--) {
+                    let x = Math.floor(Math.random() * len);
+                    result[n] = array[x in taken ? taken[x] : x];
+                    taken[x] = --len in taken ? taken[len] : len;
+                }
+                return result;
+            }
+
+            function compileFormula() {
+                const formulaStr = document.getElementById('formula_input').value;
+                try {
+                    let func = new Function('alpha', 'beta', 'E_sum', 'R_sum', 'E_JPN', 'E_MTH', 'E_ENG', 'E_SOC', 'E_SCI', `return ${formulaStr};`);
+                    let test = func(1, 1, 300, 135, 60, 60, 60, 60, 60);
+                    if (isNaN(test)) throw new Error("計算結果が不正(NaN)です。変数名が正しいか確認してください。");
+                    return func;
+                } catch (e) {
+                    logError("数式エラー:\n" + e.message);
+                    return null;
+                }
+            }
+
+            function simulateOneRound(numStudents, schools, sigma, numPrefs, calcScoreFunc, enableLogging = false) {
+                const numSchools = schools.length;
+                const totalCapacity = schools.reduce((sum, sch) => sum + sch.Q, 0);
+                let logs = [];
+
+                let students = [];
+                for (let i = 0; i < numStudents; i++) {
+                    let dv = 50.0 + Math.random() * 15.0;
+                    let genE = () => Math.min(100, Math.max(0, Math.round(60 + 15 * (dv + randomNormal(0, sigma) - 50) / 10)));
+                    let E = Array.from({ length: 5 }, genE);
+
+                    let genR = () => Math.min(5, Math.max(1, Math.round(3 + (dv - 50) / 10 + randomNormal(0, sigma / 3))));
+                    let R1 = Array.from({ length: 9 }, genR);
+                    let R2 = Array.from({ length: 9 }, genR);
+                    let R3 = Array.from({ length: 9 }, genR);
+
+                    students.push({ id: i, dv: dv, E: E, R1: R1, R2: R2, R3: R3, prefs: [], scores: {} });
+                }
+
+                let schoolIds = schools.map(s => s.id);
+
+                for (let i = 0; i < numStudents; i++) {
+                    let s = students[i];
+                    s.prefs = sampleWithoutReplacement(schoolIds, numPrefs);
+
+                    for (let j = 0; j < numSchools; j++) {
+                        let sch = schools[j];
+
+                        let e_sum = 0;
+                        for (let k = 0; k < 5; k++) e_sum += s.E[k] * sch.WE[k];
+
+                        let r_sum = 0;
+                        for (let k = 0; k < 9; k++) {
+                            let subjectR = (s.R1[k] * sch.Y[0]) + (s.R2[k] * sch.Y[1]) + (s.R3[k] * sch.Y[2]);
+                            r_sum += subjectR * sch.WR[k];
+                        }
+
+                        s.scores[j] = calcScoreFunc(sch.alpha, sch.beta, e_sum, r_sum, s.E[0], s.E[1], s.E[2], s.E[3], s.E[4]);
+                    }
+                }
+
+                let freeStudents = students.map(s => s.id);
+                let proposalIndex = new Array(numStudents).fill(0);
+                let matches = {};
+                for (let j = 0; j < numSchools; j++) matches[j] = [];
+
+                if (enableLogging) logs.push(`[開始] 受験生:${numStudents}人 / 総定員:${totalCapacity}人`);
+
+                while (freeStudents.length > 0) {
+                    let sid = freeStudents.shift();
+                    let s = students[sid];
+                    let pIdx = proposalIndex[sid];
+
+                    if (pIdx >= s.prefs.length) continue;
+
+                    let targetSchoolId = s.prefs[pIdx];
+                    let targetSchool = schools[targetSchoolId];
+                    proposalIndex[sid]++;
+
+                    let currentMatches = matches[targetSchoolId];
+                    currentMatches.push(sid);
+
+                    if (enableLogging) logs.push(`<span class="log-apply">[提案] 生徒${sid} ➔ ${targetSchool.name} (スコア: ${s.scores[targetSchoolId].toFixed(1)})</span>`);
+
+                    currentMatches.sort((a, b) => students[b].scores[targetSchoolId] - students[a].scores[targetSchoolId]);
+
+                    if (currentMatches.length > targetSchool.Q) {
+                        let rejected = currentMatches.pop();
+                        freeStudents.push(rejected);
+                        if (enableLogging) {
+                            if (rejected === sid) logs.push(`<span class="log-reject">  ✖ 枠超過のため即時拒否</span>`);
+                            else logs.push(`<span class="log-accept">  ✔ 保留 (玉突きで 生徒${rejected} を拒否)</span>`);
+                        }
+                    } else {
+                        if (enableLogging) logs.push(`<span class="log-accept">  ✔ 保留 (${currentMatches.length}/${targetSchool.Q}枠)</span>`);
+                    }
+                }
+
+                if (enableLogging) {
+                    logs.push(`<br><span class="log-end">【マッチング結果】</span>`);
+                    for (let j = 0; j < numSchools; j++) {
+                        logs.push(`${schools[j].name} : ${matches[j].length}人合格`);
+                    }
+                }
+
+                let sortedByDV = [...students].sort((a, b) => b.dv - a.dv);
+                let topTierIds = new Set(sortedByDV.slice(0, Math.min(totalCapacity, numStudents)).map(s => s.id));
+                let admittedIds = new Set();
+                for (let j = 0; j < numSchools; j++) matches[j].forEach(id => admittedIds.add(id));
+
+                let rejectedTopTierCount = 0;
+                topTierIds.forEach(id => { if (!admittedIds.has(id)) rejectedTopTierCount++; });
+
+                return enableLogging ? logs : rejectedTopTierCount;
+            }
+
+            // --- 実行コントロール ---
+            function runMonteCarlo() {
+                clearError();
+                const calcScoreFunc = compileFormula();
+                if (!calcScoreFunc) return;
+
+                const iterations = parseInt(document.getElementById('iterations').value);
+                const numStudents = parseInt(document.getElementById('num_students').value);
+                const numPrefs = parseInt(document.getElementById('num_prefs').value);
+                const sigma = parseFloat(document.getElementById('sigma').value);
+                const schools = getSchoolsData();
+                if (schools.length === 0) {
+                    logError("高校が1つも設定されていません。手動または自動で追加してください。");
+                    return;
+                }
+
+                document.getElementById('log-viewer').style.display = 'none';
+                const totalCapacity = schools.reduce((sum, sch) => sum + sch.Q, 0);
+
+                let sum = 0, max = 0, zeroCount = 0;
+                let results = [];
+
+                const btn = document.getElementById('btn-run-stats');
+                const originalText = btn.innerText;
+                btn.disabled = true; btn.innerText = "計算中...";
+
+                setTimeout(() => {
+                    try {
+                        for (let i = 0; i < iterations; i++) {
+                            let rejectedCount = simulateOneRound(numStudents, schools, sigma, numPrefs, calcScoreFunc, false);
+                            results.push(rejectedCount);
+                            sum += rejectedCount;
+                            if (rejectedCount > max) max = rejectedCount;
+                            if (rejectedCount === 0) zeroCount++;
+                        }
+
+                        document.getElementById('stats-container').style.display = 'flex';
+                        document.getElementById('resultChart').style.display = 'block';
+                        document.getElementById('stat-avg').innerText = (sum / iterations).toFixed(2) + " 人";
+                        document.getElementById('stat-max').innerText = max + " 人";
+                        document.getElementById('stat-prob').innerText = ((zeroCount / iterations) * 100).toFixed(1) + " %";
+
+                        let frequency = {};
+                        for (let i = 0; i <= max; i++) frequency[i] = 0;
+                        results.forEach(r => frequency[r]++);
+
+                        drawChart(Object.keys(frequency), Object.values(frequency), totalCapacity);
+                    } catch (e) {
+                        logError("シミュレーション中にエラーが発生しました:\n" + e.message);
+                    } finally {
+                        btn.disabled = false; btn.innerText = originalText;
+                    }
+                }, 100);
+            }
+
+            function runSingleAndView() {
+                clearError();
+                const calcScoreFunc = compileFormula();
+                if (!calcScoreFunc) return;
+
+                const numStudents = parseInt(document.getElementById('num_students').value);
+                const numPrefs = parseInt(document.getElementById('num_prefs').value);
+                const sigma = parseFloat(document.getElementById('sigma').value);
+                const schools = getSchoolsData();
+                if (schools.length === 0) {
+                    logError("高校が設定されていません。");
+                    return;
+                }
+
+                document.getElementById('stats-container').style.display = 'none';
+                document.getElementById('resultChart').style.display = 'none';
+                const viewer = document.getElementById('log-viewer');
+                viewer.style.display = 'block';
+
+                if (numStudents > 300) {
+                    viewer.innerHTML = `<span class="log-reject">※描画負荷軽減のため、ビューイングモードでは受験生数を300人以下に設定して実行してください（現在${numStudents}人）。</span>`;
+                    return;
+                }
+                viewer.innerHTML = "実行中...";
+
+                setTimeout(() => {
+                    try {
+                        let logs = simulateOneRound(numStudents, schools, sigma, numPrefs, calcScoreFunc, true);
+                        viewer.innerHTML = logs.join("<br>");
+                    } catch (e) {
+                        viewer.innerHTML = `<span class="log-reject">エラーが発生しました: ${e.message}</span>`;
+                        logError(e.message);
+                    }
+                }, 50);
+            }
+
+            function drawChart(labels, dataPoints, totalCapacity) {
+                const ctx = document.getElementById('resultChart').getContext('2d');
+                if (myChart) myChart.destroy();
+                myChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{ label: '発生頻度', data: dataPoints, backgroundColor: 'rgba(52, 152, 219, 0.7)' }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: { beginAtZero: true, title: { display: true, text: '頻度' } },
+                            x: { title: { display: true, text: `上位層（定員 ${totalCapacity}名）のあぶれ人数` } }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>
